@@ -1,0 +1,23 @@
+{
+  "dependencies": {
+    "form-data": {
+      "version": "0.1.2",
+      "dependencies": {
+        "combined-stream": {
+          "version": "0.0.4",
+          "dependencies": {
+            "delayed-stream": {
+              "version": "0.0.5"
+            }
+          }
+        },
+        "mime": {
+          "version": "1.2.11"
+        },
+        "async": {
+          "version": "0.2.9"
+        }
+      }
+    }
+  }
+}
