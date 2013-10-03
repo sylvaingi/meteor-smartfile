@@ -9,7 +9,6 @@ Package.on_use(function (api) {
 
   Npm.depends({'form-data': '0.1.2'});
 
-  api.add_files('common.js', ['client', 'server']);
   api.add_files('client.js', 'client');
   api.add_files('server.js', 'server');
 

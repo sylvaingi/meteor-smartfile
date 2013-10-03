@@ -1,3 +1,5 @@
+SmartFile = {};
+
 SmartFile.upload = function (file, path, callback) {
     var fileReader = new FileReader();
 

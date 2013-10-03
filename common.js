@@ -1,3 +1,0 @@
-SmartFile = {
-    basePath: ""
-};

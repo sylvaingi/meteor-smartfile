@@ -1,3 +1,5 @@
+SmartFile = {}
+
 var FormData = Npm.require('form-data');
 var formDataSubmitSync = Meteor._wrapAsync(FormData.prototype.submit);
 
