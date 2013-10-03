@@ -11,8 +11,9 @@ SmartFile.setApiCredentials = function (key, password) {
     SmartFile.apiPassword = password;
 };
 
-SmartFile.setBasePath = function (path) {
+SmartFile.setBasePath = function (path, publicUrl) {
     SmartFile.basePath = path;
+    SmartFile.basePublicUrl = publicUrl;
 };
 
 SmartFile.postDataToPath = function (fileName, path, data) {
@@ -33,7 +34,7 @@ SmartFile.postDataToPath = function (fileName, path, data) {
 
     return {
         statusCode: res.statusCode,
-        path: SF_API_ENDPOINT + uploadPath + "/" + fileName
+        publicPath: SmartFile.basePublicUrl + "/" + path + "/" + fileName
     };
 };
 
@@ -46,9 +47,9 @@ Meteor.methods({
                 throw new Error();
             }
 
-            console.log("Stored file in SmartFile to path: " + result.path);
+            console.log("Stored file in SmartFile to path: " + result.publicPath);
 
-            return result.path;
+            return result.publicPath;
         } catch (e) {
             throw new Meteor.Error(500, "SmartFile API error, status code " + result.statusCode);
         }
