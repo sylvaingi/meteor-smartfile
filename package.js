@@ -5,6 +5,7 @@ Package.describe({
 Package.on_use(function (api) {
   api.use([
     'meteor',
+    'livedata'
   ], ['client', 'server']);
 
   Npm.depends({'form-data': '0.1.2'});

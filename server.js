@@ -16,6 +16,11 @@ SmartFile.setBasePath = function (path, publicUrl) {
     SmartFile.basePublicUrl = publicUrl;
 };
 
+SmartFile.allow = function(){ return true; };
+
+SmartFile.onUpload = function(){ };
+SmartFile.onUploadFail = function(){ };
+
 SmartFile.postDataToPath = function (fileName, path, data) {
     var form = new FormData();
 
@@ -32,26 +37,37 @@ SmartFile.postDataToPath = function (fileName, path, data) {
         auth: SmartFile.apiKey + ":" + SmartFile.apiPassword
     });
 
-    return {
-        statusCode: res.statusCode,
-        publicPath: SmartFile.basePublicUrl + "/" + path + "/" + fileName
+    var returnValue = {
+        statusCode: res.statusCode
     };
+
+    if (returnValue.statusCode === 200) {
+        returnValue.publicPath = SmartFile.basePublicUrl + "/" + path + "/" + fileName;
+    }
+
+    return returnValue;
 };
 
 Meteor.methods({
-    "sm.upload": function (fileName, path, data) {
-        try {
-            var result = SmartFile.postDataToPath(fileName, path, data);
+    "sm.upload": function (data, options) {
+        var path = options.path || "";
+        var fileName = options.fileName || "upload-" + Date.now();
 
-            if (result.statusCode !== 200) {
-                throw new Error();
-            }
+        var allowed = SmartFile.allow.call(this, options);
 
-            console.log("Stored file in SmartFile to path: " + result.publicPath);
+        if (!allowed) {
+            throw new Meteor.Error(403, "Upload not allowed");
+        }
 
-            return result.publicPath;
-        } catch (e) {
+        var result = SmartFile.postDataToPath(fileName, path, data);
+
+        if (result.statusCode !== 200) {
+            SmartFile.onUploadFail.call(this, result, options);
             throw new Meteor.Error(500, "SmartFile API error, status code " + result.statusCode);
         }
+
+        SmartFile.onUpload.call(this, result, options);
+
+        return result.publicPath;
     }
 });
