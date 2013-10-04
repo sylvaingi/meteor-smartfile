@@ -35,9 +35,11 @@ SmartFile.mkdir = function (path) {
     }
 };
 
-SmartFile.upload = function (fileName, path, data) {
-    var form = new FormData();
+SmartFile.upload = function (data, options) {
+    var path = options.path || "";
+    var fileName = options.fileName || "upload-" + Date.now();
 
+    var form = new FormData();
     form.append("file", new Buffer(data), {
         filename: fileName
     });
@@ -63,6 +65,9 @@ SmartFile.upload = function (fileName, path, data) {
     return returnValue;
 };
 
+SmartFile.onIncomingFile = function (data, options) {
+    return SmartFile.upload(data, options);
+};
 
 Meteor.methods({
     "sm.upload": function (data, options) {
@@ -72,19 +77,13 @@ Meteor.methods({
             throw new Meteor.Error(403, "Upload not allowed");
         }
 
-        var path = options.path || "";
-        var fileName = options.fileName || "upload-" + Date.now();
-        var result;
-
         try {
-            result = SmartFile.upload(fileName, path, data);
+            var result = SmartFile.onIncomingFile(data, options);
+            SmartFile.onUpload.call(this, result, options);
+            return result;
         } catch (e){
             SmartFile.onUploadFail.call(this, result, options);
             throw new Meteor.Error(500, e.message);
         }
-
-        SmartFile.onUpload.call(this, result, options);
-
-        return result.publicPath;
     }
 });
