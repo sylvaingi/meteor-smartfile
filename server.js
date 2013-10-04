@@ -66,15 +66,14 @@ SmartFile.upload = function (fileName, path, data) {
 
 Meteor.methods({
     "sm.upload": function (data, options) {
-        var path = options.path || "";
-        var fileName = options.fileName || "upload-" + Date.now();
-
         var allowed = SmartFile.allow.call(this, options);
 
         if (!allowed) {
             throw new Meteor.Error(403, "Upload not allowed");
         }
 
+        var path = options.path || "";
+        var fileName = options.fileName || "upload-" + Date.now();
         var result;
 
         try {
