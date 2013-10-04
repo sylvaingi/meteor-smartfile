@@ -1,5 +1,3 @@
-SmartFile = {}
-
 var FormData = Npm.require('form-data');
 var formDataSubmitSync = Meteor._wrapAsync(FormData.prototype.submit);
 
@@ -9,11 +7,6 @@ var SF_API_PATH = "/api/2/";
 SmartFile.setApiCredentials = function (key, password) {
     SmartFile.apiKey = key;
     SmartFile.apiPassword = password;
-};
-
-SmartFile.setBasePath = function (path, publicUrl) {
-    SmartFile.basePath = path;
-    SmartFile.basePublicUrl = publicUrl;
 };
 
 SmartFile.allow = function(){ return true; };
@@ -42,7 +35,8 @@ SmartFile.postDataToPath = function (fileName, path, data) {
     };
 
     if (returnValue.statusCode === 200) {
-        returnValue.publicPath = SmartFile.basePublicUrl + "/" + path + "/" + fileName;
+        returnValue.path = path + "/" + fileName;
+        returnValue.publicPath = SmartFile.basePublicUrl + "/" + returnValue.path;
     }
 
     return returnValue;

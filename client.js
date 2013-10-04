@@ -1,5 +1,3 @@
-SmartFile = {};
-
 SmartFile.upload = function (file, options, callback) {
     if (typeof options === "function") {
         callback = options;
