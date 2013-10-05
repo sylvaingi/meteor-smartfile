@@ -82,8 +82,14 @@ Meteor.methods({
             SmartFile.onUpload.call(this, result, options);
             return result;
         } catch (e){
-            SmartFile.onUploadFail.call(this, result, options);
-            throw new Meteor.Error(500, e.message);
+            //Handle only SF related errors
+            if (e.statusCode) {
+                SmartFile.onUploadFail.call(this, result, options);
+                throw new Meteor.Error(500, e.message);
+            }
+            else {
+                throw e;
+            }
         }
     }
 });
