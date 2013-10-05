@@ -40,7 +40,7 @@ SmartFile.upload = function (data, options) {
     var fileName = options.fileName || "upload-" + Date.now();
 
     var form = new FormData();
-    form.append("file", new Buffer(data), {
+    form.append("file", data, {
         filename: fileName
     });
 
@@ -78,7 +78,7 @@ Meteor.methods({
         }
 
         try {
-            var result = SmartFile.onIncomingFile(data, options);
+            var result = SmartFile.onIncomingFile(new Buffer(data), options);
             SmartFile.onUpload.call(this, result, options);
             return result;
         } catch (e){
