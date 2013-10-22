@@ -15,7 +15,7 @@ $ mrt add smartfile
 
 ### Configuration
 
-Prior to using this package, you must be have a free SmartFile Developers 
+Prior to using this package, you must have a free SmartFile Developers 
 account (signup [here](https://app.smartfile.com/dev/signup/)).
 
 #### Server configuration
