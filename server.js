@@ -5,18 +5,23 @@ var SF_API_ENDPOINT = "app.smartfile.com";
 var SF_API_PATH = "/api/2/";
 var SF_API_URL = "https://" + SF_API_ENDPOINT + SF_API_PATH;
 
-function makeSFError (statusCode) {
-    var error = new Error("SmartFile API returned status code " + statusCode);
-    error.statusCode = statusCode;
-    return error;
-}
+var apiAuthString;
+var basePath;
 
-SmartFile.setApiCredentials = function (key, password) {
-    SmartFile.apiKey = key;
-    SmartFile.apiPassword = password;
+SmartFile.configure = function (params) {
+    if (params.key && params.password) {
+        apiAuthString = params.key + ":" + params.password;
+    }
 
-    SmartFile.apiAuthString = key + ":" + password;
+    basePath = params.basePath || basePath || "";
+    SmartFile.publicRootUrl = params.publicRootUrl || SmartFile.publicRootUrl;
 };
+
+Meteor.startup(function() {
+    if (!apiAuthString) {
+        console.log("Warning, SmartFile package is not configured");
+    }
+});
 
 SmartFile.allow = function(){ return true; };
 
@@ -28,8 +33,8 @@ SmartFile.mkdir = function (path) {
         var url = SF_API_URL + "/path/oper/mkdir/";
 
         HTTP.post(url, {
-            auth: SmartFile.apiAuthString,
-            data: {path: SmartFile.basePath + "/" + path}
+            auth: apiAuthString,
+            data: {path: resolvePath(path)}
         });
     } catch (e){
         throw makeSFError(e.response.statusCode);
@@ -38,11 +43,10 @@ SmartFile.mkdir = function (path) {
 
 SmartFile.ls = function (path) {
     try {
-        var url = SF_API_URL + "/path/info/" +  SmartFile.basePath +
-                    "/" + path + "?children=true";
+        var url = SF_API_URL + "/path/info/" + resolvePath(path) + "?children=true";
 
         var result = HTTP.get(url, {
-            auth: SmartFile.apiAuthString
+            auth: apiAuthString
         });
 
         return result.data;
@@ -60,21 +64,20 @@ SmartFile.upload = function (data, options) {
         filename: fileName
     });
 
-    var uploadPath = SF_API_PATH + "path/data/" + SmartFile.basePath +
-                        "/" + path;
+    var uploadPath = SF_API_PATH + "path/data/" + resolvePath(path);
 
     var res = formDataSubmitSync.call(form, {
         protocol: "https:",
         host: SF_API_ENDPOINT,
         path: uploadPath,
-        auth: SmartFile.apiAuthString
+        auth: apiAuthString
     });
 
     if (res.statusCode !== 200) {
         throw makeSFError(res.statusCode);
     }
 
-    var returnValue = {};   
+    var returnValue = {};
     returnValue.statusCode = res.statusCode;
     returnValue.path = path + "/" + fileName;
 
@@ -109,3 +112,13 @@ Meteor.methods({
         }
     }
 });
+
+function makeSFError (statusCode) {
+    var error = new Error("SmartFile API returned status code " + statusCode);
+    error.statusCode = statusCode;
+    return error;
+}
+
+function resolvePath (path) {
+    return basePath + "/" + path;
+}

@@ -1,3 +1,7 @@
+SmartFile.configure = function (params) {
+    SmartFile.publicRootUrl = params.publicRootUrl;
+};
+
 SmartFile.upload = function (file, options, callback) {
     if (typeof options === "function") {
         callback = options;
