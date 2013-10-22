@@ -3,6 +3,7 @@ var formDataSubmitSync = Meteor._wrapAsync(FormData.prototype.submit);
 
 var SF_API_ENDPOINT = "app.smartfile.com";
 var SF_API_PATH = "/api/2/";
+var SF_API_URL = "https://" + SF_API_ENDPOINT + SF_API_PATH;
 
 function makeSFError (statusCode) {
     var error = new Error("SmartFile API returned status code " + statusCode);
@@ -24,12 +25,27 @@ SmartFile.onUploadFail = function(){ };
 
 SmartFile.mkdir = function (path) {
     try {
-        var url = "https://" + SF_API_ENDPOINT + SF_API_PATH + "/path/oper/mkdir/";
+        var url = SF_API_URL + "/path/oper/mkdir/";
 
         HTTP.post(url, {
             auth: SmartFile.apiAuthString,
             data: {path: SmartFile.basePath + "/" + path}
         });
+    } catch (e){
+        throw makeSFError(e.response.statusCode);
+    }
+};
+
+SmartFile.ls = function (path) {
+    try {
+        var url = SF_API_URL + "/path/info/" +  SmartFile.basePath +
+                    "/" + path + "?children=true";
+
+        var result = HTTP.get(url, {
+            auth: SmartFile.apiAuthString
+        });
+
+        return result.data;
     } catch (e){
         throw makeSFError(e.response.statusCode);
     }
@@ -44,7 +60,8 @@ SmartFile.upload = function (data, options) {
         filename: fileName
     });
 
-    var uploadPath = SF_API_PATH + "path/data/" + SmartFile.basePath + "/" + path;
+    var uploadPath = SF_API_PATH + "path/data/" + SmartFile.basePath +
+                        "/" + path;
 
     var res = formDataSubmitSync.call(form, {
         protocol: "https:",
@@ -57,10 +74,9 @@ SmartFile.upload = function (data, options) {
         throw makeSFError(res.statusCode);
     }
 
-    var returnValue = {};
+    var returnValue = {};   
     returnValue.statusCode = res.statusCode;
     returnValue.path = path + "/" + fileName;
-    returnValue.publicPath = SmartFile.basePublicUrl + "/" + returnValue.path;
 
     return returnValue;
 };
