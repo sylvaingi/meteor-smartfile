@@ -1,6 +1,6 @@
 # meteor-smartfile
 
-Dead simple file uploads for Meteor backed by SmartFile file hosting platform (https://www.smartfile.com/developers/)
+Dead simple file uploads for Meteor backed by [SmartFile](https://www.smartfile.com/developers/) file hosting platform
 
 ## Installation
 
@@ -15,8 +15,8 @@ $ mrt add smartfile
 
 ### Configuration
 
-Prior to using this package, you must have a free SmartFile Developers 
-account (signup [here](https://app.smartfile.com/dev/signup/)).
+Before using this package, you must have a free SmartFile Developers account 
+(signup [here](https://app.smartfile.com/dev/signup/)).
 
 #### Server configuration
 
@@ -31,11 +31,12 @@ SmartFile.configure({
 });
 ```
 **basePath** is optional and defines the root directory on SmartFile the package will
-use for read and write operations. If undefined, the root directory on SmartFile will be used.
+use for read and write operations. If not specified, the root directory on SmartFile will be used.
 
-**publicRootUrl** is optional, if defined it must correspond to a `https://file.ac/XXXXXXX/` URL 
-of a SmartFile link pointing to your *basePath*. Links are useful for public access
-(i.e. the browser fetching uploaded files on SmartFile), they can be created through the [UI](https://app.smartfile.com) or via the REST API.
+**publicRootUrl** is optional, it must be a `https://file.ac/XXXXXXX/` URL of a SmartFile link 
+pointing to your *basePath*. 
+Links are useful for public access (i.e. the browser fetching uploaded files on SmartFile), 
+they can be created through the [UI](https://app.smartfile.com) or via the REST API.
 
 
 #### Client configuration
@@ -94,7 +95,7 @@ SmartFile.ls("uploads");
 
 #### Advanced
 
-Internally, meteor-smartfile defines a Meteor method calling `SmartFile.onIncomingFile(data, options)` 
+Internally, meteor-smartfile defines a Meteor method invoking `SmartFile.onIncomingFile(data, options)` 
 whenever a client calls `upload()` and the server `allow()` callback returns true.  
 
 The default implementation is:
