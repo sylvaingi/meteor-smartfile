@@ -55,7 +55,7 @@ SmartFile.ls = function (path) {
     }
 };
 
-SmartFile.upload = function (data, options) {
+SmartFile.save = function (data, options) {
     var path = options.path || "";
     var fileName = options.fileName || "upload-" + Date.now();
 
@@ -85,7 +85,7 @@ SmartFile.upload = function (data, options) {
 };
 
 SmartFile.onIncomingFile = function (data, options) {
-    return SmartFile.upload(data, options);
+    return SmartFile.save(data, options);
 };
 
 Meteor.methods({
