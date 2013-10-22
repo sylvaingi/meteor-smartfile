@@ -15,7 +15,8 @@ $ mrt add smartfile
 
 ### Configuration
 
-Prior to using this package, you must be have a free SmartFile Developers account (signup [here](https://app.smartfile.com/dev/signup/)).
+Prior to using this package, you must be have a free SmartFile Developers 
+account (signup [here](https://app.smartfile.com/dev/signup/)).
 
 #### Server configuration
 
@@ -29,9 +30,12 @@ SmartFile.configure({
     publicRootUrl: "https://file.ac/XXXXXXX/"
 });
 ```
-**basePath** is optional and defines the root directory on SmartFile the package will use for read and write operations. If undefined, the root directory on SmartFile will be used.
+**basePath** is optional and defines the root directory on SmartFile the package will
+use for read and write operations. If undefined, the root directory on SmartFile will be used.
 
-**publicRootUrl** is optional, if defined it must correspond to a `https://file.ac/XXXXXXX/` URL of a SmartFile link pointing to your *basePath*. Links are useful for public access (i.e. the browser fetching uploaded files on SmartFile), they can be created through the [UI](https://app.smartfile.com) or via the REST API.
+**publicRootUrl** is optional, if defined it must correspond to a `https://file.ac/XXXXXXX/` URL 
+of a SmartFile link pointing to your *basePath*. Links are useful for public access
+(i.e. the browser fetching uploaded files on SmartFile), they can be created through the [UI](https://app.smartfile.com) or via the REST API.
 
 
 #### Client configuration
@@ -67,7 +71,8 @@ SmartFile.allow = function (options) {
     return options.path === "uploads";
 };
 
-// Callbacks for upload success or failure, result contains statusCode returned by SmartFile API and path corresponding to the upload
+// Callbacks for upload success or failure
+// result contains statusCode returned by SmartFile API and path corresponding to the upload
 SmartFile.onUpload = function (result, options) {
     console.log("File uploaded to " + result.path);
 };
@@ -89,7 +94,8 @@ SmartFile.ls("uploads");
 
 #### Advanced
 
-Internally, meteor-smartfile defines a Meteor method calling `SmartFile.onIncomingFile(data, options)` after the SmartFile.allow() callback validates the upload.
+Internally, meteor-smartfile defines a Meteor method calling `SmartFile.onIncomingFile(data, options)` 
+whenever a client calls `upload()` and the server `allow()` callback returns true.  
 
 The default implementation is:
 ```js
@@ -99,7 +105,9 @@ SmartFile.onIncomingFile = function (data, options) {
 }
 ```
 
-It can be overriden in order to tweak the upload contents, as the data parameter is a Node.js Buffer instance. A real-world usage would be resizing an image in 3 sizes and upload them to SmartFile via 3 calls to `SmartFile.save()`.
+It can be overriden in order to tweak the upload contents, as the data parameter is a Node.js Buffer instance. 
+A real-world usage would be resizing a received image in 3 sizes and upload them 
+to SmartFile via 3 calls to `SmartFile.save()`.
 
 ## License
 
