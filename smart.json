@@ -1,8 +1,8 @@
 {
   "name": "smartfile",
-  "description": "i18n as simple as it gets for Meteor",
+  "description": "File uploads with SmartFile hosting",
   "homepage": "https://github.com/sylvaingi/meteor-smartfile",
   "author": "Sylvain Gizard (https://github.com/sylvaingi)",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "git": "https://github.com/sylvaingi/meteor-smartfile.git"
 }
