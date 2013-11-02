@@ -3,6 +3,6 @@
   "description": "File uploads with SmartFile hosting",
   "homepage": "https://github.com/sylvaingi/meteor-smartfile",
   "author": "Sylvain Gizard (https://github.com/sylvaingi)",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "git": "https://github.com/sylvaingi/meteor-smartfile.git"
 }
