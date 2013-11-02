@@ -1,5 +1,5 @@
+var Future = Npm.require('fibers/future');
 var FormData = Npm.require('form-data');
-var formDataSubmitSync = Meteor._wrapAsync(FormData.prototype.submit);
 
 var SF_API_ENDPOINT = "app.smartfile.com";
 var SF_API_PATH = "/api/2/";
@@ -66,22 +66,29 @@ SmartFile.save = function (data, options) {
 
     var uploadPath = SF_API_PATH + "path/data/" + resolvePath(path);
 
-    var res = formDataSubmitSync.call(form, {
+    var future = new Future();
+    form.submit({
         protocol: "https:",
         host: SF_API_ENDPOINT,
         path: uploadPath,
         auth: apiAuthString
-    });
+    }, future.resolver());
 
+    future.wait();
+
+    var res = future.get();
     if (res.statusCode !== 200) {
         throw makeSFError(res.statusCode);
     }
 
-    var returnValue = {};
-    returnValue.statusCode = res.statusCode;
-    returnValue.path = path + "/" + fileName;
+    future = new Future();
+    res.on("data", function(data){
+        future.return(JSON.parse(data));
+    });
 
-    return returnValue;
+    future.wait();
+
+    return future.get();
 };
 
 SmartFile.onIncomingFile = function (data, options) {
@@ -99,7 +106,6 @@ Meteor.methods({
         try {
             var result = SmartFile.onIncomingFile(new Buffer(data), options);
             SmartFile.onUpload.call(this, result, options);
-            return result;
         } catch (e){
             //Handle only SF related errors
             if (e.statusCode) {
