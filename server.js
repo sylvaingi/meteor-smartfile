@@ -2,7 +2,7 @@ var Future = Npm.require('fibers/future');
 var FormData = Npm.require('form-data');
 
 var SF_API_ENDPOINT = "app.smartfile.com";
-var SF_API_PATH = "/api/2/";
+var SF_API_PATH = "/api/2";
 var SF_API_URL = "https://" + SF_API_ENDPOINT + SF_API_PATH;
 
 var apiAuthString;
@@ -32,12 +32,14 @@ SmartFile.mkdir = function (path) {
     try {
         var url = SF_API_URL + "/path/oper/mkdir/";
 
-        HTTP.post(url, {
+        var result = HTTP.post(url, {
             auth: apiAuthString,
             data: {path: resolvePath(path)}
         });
+
+        return result.data;
     } catch (e){
-        throw makeSFError(e.response.statusCode);
+        throw makeSFError(e.response);
     }
 };
 
@@ -51,7 +53,7 @@ SmartFile.ls = function (path) {
 
         return result.data;
     } catch (e){
-        throw makeSFError(e.response.statusCode);
+        throw makeSFError(e.response);
     }
 };
 
@@ -64,31 +66,32 @@ SmartFile.save = function (data, options) {
         filename: fileName
     });
 
-    var uploadPath = SF_API_PATH + "path/data/" + resolvePath(path);
+    var uploadPath = SF_API_PATH + "/path/data/" + resolvePath(path);
 
-    var future = new Future();
+    var f1 = new Future();
     form.submit({
         protocol: "https:",
         host: SF_API_ENDPOINT,
         path: uploadPath,
         auth: apiAuthString
-    }, future.resolver());
+    }, f1.resolver());
+    f1.wait();
 
-    future.wait();
+    var res = f1.get();
 
-    var res = future.get();
+    var f2 = new Future();
+    res.on("data", function(data){
+        f2.return(JSON.parse(data));
+    });
+    f2.wait();
+
+    var resBody = f2.get();
+
     if (res.statusCode !== 200) {
-        throw makeSFError(res.statusCode);
+        throw makeSFError({statusCode: res.statusCode, data: resBody});
     }
 
-    future = new Future();
-    res.on("data", function(data){
-        future.return(JSON.parse(data));
-    });
-
-    future.wait();
-
-    return future.get();
+    return resBody;
 };
 
 SmartFile.onIncomingFile = function (data, options) {
@@ -109,7 +112,7 @@ Meteor.methods({
         } catch (e){
             //Handle only SF related errors
             if (e.statusCode) {
-                SmartFile.onUploadFail.call(this, result, options);
+                SmartFile.onUploadFail.call(this, e, options);
                 throw new Meteor.Error(500, e.message);
             }
             else {
@@ -119,9 +122,13 @@ Meteor.methods({
     }
 });
 
-function makeSFError (statusCode) {
-    var error = new Error("SmartFile API returned status code " + statusCode);
-    error.statusCode = statusCode;
+function makeSFError (response) {
+    var error = new Error("SmartFile API returned status code " + response.statusCode);
+    error.statusCode = response.statusCode;
+
+    var detail = typeof response.data === "object" ? response.data.detail : null;
+    error.detail = detail;
+    
     return error;
 }
 
