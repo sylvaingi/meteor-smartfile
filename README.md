@@ -57,7 +57,7 @@ SmartFile.upload(file, {
     }
 
     // Log the public URL of the upload
-    console.log("Upload public URL:" + SmartFile.resolvePublic(res.path));
+    console.log("Upload public URL:" + SmartFile.resolvePublic(res));
 });
 ```
 
@@ -78,8 +78,8 @@ SmartFile.onUpload = function (result, options) {
     console.log("File uploaded to " + result.path);
 };
 
-SmartFile.onUploadFail = function (result, options) {
-    console.log("SmartFile returned error code " + result.statusCode);
+SmartFile.onUploadFail = function (error, options) {
+    console.log("SmartFile returned error", error.statusCode, error.detail);
 };
 ```
 

@@ -109,6 +109,9 @@ Meteor.methods({
         try {
             var result = SmartFile.onIncomingFile(new Buffer(data), options);
             SmartFile.onUpload.call(this, result, options);
+
+            //Return relative path to the client for potential resolvePublic() call
+            return options.path + "/" + options.fileName;
         } catch (e){
             //Handle only SF related errors
             if (e.statusCode) {
@@ -128,7 +131,7 @@ function makeSFError (response) {
 
     var detail = typeof response.data === "object" ? response.data.detail : null;
     error.detail = detail;
-    
+
     return error;
 }
 
