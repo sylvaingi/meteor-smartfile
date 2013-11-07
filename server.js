@@ -159,8 +159,9 @@ Meteor.methods({
         try {
             var result = sfInstance.onIncomingFile(new Buffer(data), options);
             sfInstance.onUpload.call(this, result, options);
+
             //Return relative path to the client for potential resolvePublic() call
-            return options.path + "/" + options.fileName;
+            return encodeString(options.path) + "/" + encodeString(options.fileName);
         } catch (e) {
             //Handle only SF related errors
             if (e.statusCode) {
@@ -195,6 +196,6 @@ function encodeContent(params) {
 }
 
 function encodeString (str) {
-  return encodeURIComponent(str).replace(/[!'()]/g, escape).replace(/\*/g, "%2A");
+    return encodeURIComponent(str).replace(/[!'()]/g, escape).replace(/\*/g, "%2A");
 }
 
