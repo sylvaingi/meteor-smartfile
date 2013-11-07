@@ -5,86 +5,100 @@ var SF_API_ENDPOINT = "app.smartfile.com";
 var SF_API_PATH = "/api/2";
 var SF_API_URL = "https://" + SF_API_ENDPOINT + SF_API_PATH;
 
-var apiAuthString;
-var basePath;
+var instancesById = {};
 
-SmartFile.configure = function (params) {
-    if (params.key && params.password) {
-        apiAuthString = params.key + ":" + params.password;
-    }
+function SmartFileServer (params) {
+    this.id = params.id || SmartFileBase.defaultId;
 
-    basePath = params.basePath || basePath || "";
-    SmartFile.publicRootUrl = params.publicRootUrl || SmartFile.publicRootUrl;
+    this.config = {};
+    this.config.basePath = "";
+    
+    this.configure(params);
+
+    instancesById[this.id] = this;
+}
+
+SmartFile = SmartFileServer;
+
+_.extend(SmartFileServer.prototype, SmartFileBase.prototype);
+
+SmartFileServer.prototype.configure = function (params) {
+    params = _.pick(params, "key", "password", "basePath", "publicRootUrl");
+    _.extend(this.config, params);
 };
 
-Meteor.startup(function () {
-    if (!apiAuthString) {
-        console.log("Warning, SmartFile package is not configured");
+SmartFileServer.prototype._getApiAuthString = function () {
+    var key = this.config.key;
+    var password = this.config.password;
+
+    if (!_.isString(key) || !_.isString(password) ||
+            key.length === 0 || password.length === 0) {
+        throw new Error("SmartFile key/password is invalid");
     }
-});
+    
+    return key + ":" + password;
+};
 
-SmartFile.allow = function () { return true; };
+// FS methods
+SmartFileServer.prototype.resolve = function (path) {
+    return this.config.basePath + "/" + path;
+}
 
-SmartFile.onUpload = function () { };
-SmartFile.onUploadFail = function () { };
+SmartFileServer.prototype.mkdir = function (path) {
+    var url = SF_API_URL + "/path/oper/mkdir/";
 
-SmartFile.mkdir = function (path) {
     try {
-        var url = SF_API_URL + "/path/oper/mkdir/";
-
         var result = HTTP.post(url, {
-            auth: apiAuthString,
-            data: {path: resolvePath(path)}
+            auth: this._getApiAuthString(),
+            data: {path: this.resolve(path)}
         });
-
         return result.data;
     } catch (e){
-        throw makeSFError(e.response);
+        throw makeSFError(e);
     }
 };
 
-SmartFile.ls = function (path) {
+SmartFileServer.prototype.ls = function (path) {
+    var url = SF_API_URL + "/path/info/" + this.resolve(path) + "?children=true";
     try {
-        var url = SF_API_URL + "/path/info/" + resolvePath(path) + "?children=true";
-
         var result = HTTP.get(url, {
-            auth: apiAuthString
+            auth: this._getApiAuthString()
         });
-
         return result.data;
     } catch (e){
-        throw makeSFError(e.response);
+        throw makeSFError(e);
     }
 };
 
-SmartFile.rm = function (paths) {
+SmartFileServer.prototype.rm = function (paths) {
+    var that = this;
+
+    if (!Array.isArray(paths)) {
+        paths = [paths];
+    }
+
+    var content = paths.map(function(path){
+        return "path=" + encodeString(that.resolve(path));
+    }).join("&");
+    content = encodeContent(content);
+
+    var url = SF_API_URL + "/path/oper/remove/";
+    
     try {
-        if (!Array.isArray(paths)) {
-            paths = [paths];
-        }
-
-        var content = paths.map(function(path){
-            return "path=" + encodeString(resolvePath(path));
-        }).join("&");
-        content = encodeContent(content);
-
-        var url = SF_API_URL + "/path/oper/remove/";
-
         var result = HTTP.post(url, {
-            auth: apiAuthString,
+            auth: this._getApiAuthString(),
             content: content,
             headers: {
                 "Content-Type": "application/x-www-form-urlencoded"
             }
         });
-
         return result.data;
     } catch (e){
-        throw makeSFError(e.response);
+        throw makeSFError(e);
     }
 };
 
-SmartFile.save = function (data, options) {
+SmartFileServer.prototype.save = function (data, options) {
     var path = options.path || "";
     var fileName = options.fileName || "upload-" + Date.now();
 
@@ -93,14 +107,14 @@ SmartFile.save = function (data, options) {
         filename: fileName
     });
 
-    var uploadPath = SF_API_PATH + "/path/data/" + resolvePath(path);
+    var uploadPath = SF_API_PATH + "/path/data/" + this.resolve(path);
 
     var f1 = new Future();
     form.submit({
         protocol: "https:",
         host: SF_API_ENDPOINT,
         path: uploadPath,
-        auth: apiAuthString
+        auth: this._getApiAuthString()
     }, f1.resolver());
     f1.wait();
 
@@ -121,28 +135,36 @@ SmartFile.save = function (data, options) {
     return resBody;
 };
 
-SmartFile.onIncomingFile = function (data, options) {
-    return SmartFile.save(data, options);
-};
+// Default callbacks
+SmartFileServer.prototype.onIncomingFile = SmartFileServer.prototype.save;
+
+SmartFileServer.prototype.allow = function () { return true; };
+
+SmartFileServer.prototype.onUpload = function () { };
+SmartFileServer.prototype.onUploadFail = function () { };
+
 
 Meteor.methods({
     "sm.upload": function (data, options) {
-        var allowed = SmartFile.allow.call(this, options);
+        var sfInstance = instancesById[options.id];
+        if (!sfInstance) {
+            throw new Meteor.Error(400, "Unknown SmartFile instance id");
+        }
 
+        var allowed = sfInstance.allow.call(this, options);
         if (!allowed) {
             throw new Meteor.Error(403, "Upload not allowed");
         }
 
         try {
-            var result = SmartFile.onIncomingFile(new Buffer(data), options);
-            SmartFile.onUpload.call(this, result, options);
-
+            var result = sfInstance.onIncomingFile(new Buffer(data), options);
+            sfInstance.onUpload.call(this, result, options);
             //Return relative path to the client for potential resolvePublic() call
             return options.path + "/" + options.fileName;
         } catch (e) {
             //Handle only SF related errors
             if (e.statusCode) {
-                SmartFile.onUploadFail.call(this, e, options);
+                sfInstance.onUploadFail.call(this, e, options);
                 throw new Meteor.Error(500, e.message);
             }
             else {
@@ -152,17 +174,19 @@ Meteor.methods({
     }
 });
 
-function makeSFError (response) {
+
+function makeSFError (e) {
+    var response = e.response;
+    if (!response) {
+        return e;
+    }
+
     var error = new Error("SmartFile API returned status code " + response.statusCode);
     error.statusCode = response.statusCode;
 
     var detail = typeof response.data === "object" ? response.data.detail : null;
     error.detail = detail;
     return error;
-}
-
-function resolvePath (path) {
-    return basePath + "/" + path;
 }
 
 // extracted from HTTP package
@@ -173,3 +197,4 @@ function encodeContent(params) {
 function encodeString (str) {
   return encodeURIComponent(str).replace(/[!'()]/g, escape).replace(/\*/g, "%2A");
 }
+

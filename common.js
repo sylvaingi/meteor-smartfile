@@ -1,9 +1,12 @@
-SmartFile = {};
+SmartFileBase = function () {
+}
 
-SmartFile.resolvePublic = function (path) {
-    if (!SmartFile.publicRootUrl) {
-        throw new Error("No publicRootUrl defined via configure()");
+SmartFileBase.defaultId = "__default";
+
+SmartFileBase.prototype.resolvePublic = function (path) {
+    if (!this.config.publicRootUrl) {
+        throw new Error("No publicRootUrl configured");
     }
 
-    return SmartFile.publicRootUrl + "/" + path;
+    return this.config.publicRootUrl + "/" + path;
 };
