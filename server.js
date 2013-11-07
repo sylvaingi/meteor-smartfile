@@ -8,6 +8,8 @@ var SF_API_URL = "https://" + SF_API_ENDPOINT + SF_API_PATH;
 var instancesById = {};
 
 function SmartFileServer (params) {
+    params = params || {};
+    
     this.id = params.id || SmartFileBase.defaultId;
 
     this.config = {};
