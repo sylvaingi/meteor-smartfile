@@ -91,6 +91,9 @@ SmartFile.mkdir("uploads/images");
 
 // Lists the files within the uploads directory
 SmartFile.ls("uploads");
+
+// Remove a remote file...
+SmartFile.rm("uploads/secret.txt");
 ```
 
 #### Advanced
