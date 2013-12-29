@@ -11,6 +11,11 @@ From inside a Meteorite-managed app:
 $ mrt add smartfile
 ```
 
+## Example
+
+https://github.com/sylvaingi/meteor-smartfile-example
+
+
 ## API
 
 ### Configuration
