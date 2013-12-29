@@ -9,12 +9,12 @@ var instancesById = {};
 
 function SmartFileServer (params) {
     params = params || {};
-    
+
     this.id = params.id || SmartFileBase.defaultId;
 
     this.config = {};
     this.config.basePath = "";
-    
+
     this.configure(params);
 
     instancesById[this.id] = this;
@@ -37,7 +37,7 @@ SmartFileServer.prototype._getApiAuthString = function () {
             key.length === 0 || password.length === 0) {
         throw new Error("SmartFile key/password is invalid");
     }
-    
+
     return key + ":" + password;
 };
 
@@ -85,7 +85,7 @@ SmartFileServer.prototype.rm = function (paths) {
     content = encodeContent(content);
 
     var url = SF_API_URL + "/path/oper/remove/";
-    
+
     try {
         var result = HTTP.post(url, {
             auth: this._getApiAuthString(),
@@ -101,15 +101,15 @@ SmartFileServer.prototype.rm = function (paths) {
 };
 
 SmartFileServer.prototype.save = function (data, options) {
-    var path = options.path || "";
-    var fileName = options.fileName || "upload-" + Date.now();
+    options.path = options.path || "";
+    options.fileName = options.fileName || "upload-" + Date.now();
 
     var form = new FormData();
     form.append("file", data, {
-        filename: fileName
+        filename: options.fileName
     });
 
-    var uploadPath = SF_API_PATH + "/path/data/" + this.resolve(path);
+    var uploadPath = SF_API_PATH + "/path/data/" + this.resolve(options.path);
 
     var f1 = new Future();
     form.submit({
@@ -200,4 +200,3 @@ function encodeContent(params) {
 function encodeString (str) {
     return encodeURIComponent(str).replace(/[!'()]/g, escape).replace(/\*/g, "%2A");
 }
-

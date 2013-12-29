@@ -14,6 +14,10 @@ SmartFileClient.prototype.configure = function (params) {
 };
 
 SmartFileClient.prototype.upload = function (file, options, callback) {
+    if (!file) {
+        throw new Error("You must pass a File object as first arg");
+    }
+
     if (typeof options === "function") {
         callback = options;
         options = null;
@@ -25,7 +29,7 @@ SmartFileClient.prototype.upload = function (file, options, callback) {
     if (!params.fileName) {
         params.fileName = file.name;
     }
-    
+
     params.id = this.id;
 
     var fileReader = new FileReader();
@@ -36,4 +40,3 @@ SmartFileClient.prototype.upload = function (file, options, callback) {
 
     fileReader.readAsArrayBuffer(file);
 };
-
