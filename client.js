@@ -34,7 +34,7 @@ SmartFileClient.prototype.upload = function (file, options, callback) {
 
     var fileReader = new FileReader();
 
-    fileReader.onload = function(e) {
+    fileReader.onload = e => {
         Meteor.call("sm.upload", new Uint8Array(e.target.result), params, callback);
     };
 

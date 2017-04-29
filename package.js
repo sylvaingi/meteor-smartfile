@@ -2,7 +2,7 @@ Package.describe({
   summary: 'SmartFile.com for Meteor'
 });
 
-Package.on_use(function (api) {
+Package.on_use(api => {
   api.use([
     'meteor',
     'livedata',

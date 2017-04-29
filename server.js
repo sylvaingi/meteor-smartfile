@@ -79,9 +79,7 @@ SmartFileServer.prototype.rm = function (paths) {
         paths = [paths];
     }
 
-    var content = paths.map(function(path){
-        return "path=" + encodeString(that.resolve(path));
-    }).join("&");
+    var content = paths.map(path => "path=" + encodeString(that.resolve(path))).join("&");
     content = encodeContent(content);
 
     var url = SF_API_URL + "/path/oper/remove/";
@@ -89,7 +87,7 @@ SmartFileServer.prototype.rm = function (paths) {
     try {
         var result = HTTP.post(url, {
             auth: this._getApiAuthString(),
-            content: content,
+            content,
             headers: {
                 "Content-Type": "application/x-www-form-urlencoded"
             }
@@ -123,7 +121,7 @@ SmartFileServer.prototype.save = function (data, options) {
     var res = f1.get();
 
     var f2 = new Future();
-    res.on("data", function(data) {
+    res.on("data", data => {
         f2.return(JSON.parse(data));
     });
     f2.wait();
@@ -140,10 +138,10 @@ SmartFileServer.prototype.save = function (data, options) {
 // Default callbacks
 SmartFileServer.prototype.onIncomingFile = SmartFileServer.prototype.save;
 
-SmartFileServer.prototype.allow = function () { return true; };
+SmartFileServer.prototype.allow = () => true;
 
-SmartFileServer.prototype.onUpload = function () { };
-SmartFileServer.prototype.onUploadFail = function () { };
+SmartFileServer.prototype.onUpload = () => { };
+SmartFileServer.prototype.onUploadFail = () => { };
 
 
 Meteor.methods({
