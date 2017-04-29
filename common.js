@@ -1,4 +1,4 @@
-SmartFileBase = function () {
+SmartFileBase = () => {
 }
 
 SmartFileBase.defaultId = "__default";
